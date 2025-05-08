@@ -1,0 +1,73 @@
+// import custom .scss files
+@use './variables.scss';
+@use './gradients.scss';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+html,
+body {
+    height: 100%;
+}
+:root {
+    font-size: 16px; //1rem === 16px
+    scroll-behavior: smooth;
+}
+/* hide arrows of input[type="number"] for chrome,safari,edge,opera */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+/* hide arrows of input[type="number"] for firefox */
+input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+@media screen and (width<1200px) {
+    :root {
+        font-size: 14px;
+    }
+}
+
+@layer utilities {
+    //write css classes here
+    .landing-navbar {
+        @supports (backdrop-filter: blur(0px)) {
+            @apply bg-white bg-opacity-40 backdrop-blur-sm;
+        }
+        @supports not (backdrop-filter: blur(0px)) {
+            @apply bg-white shadow-sm;
+        }
+    }
+    .custom-scrollbar {
+        // add this class to overflowed container that has max-width,max-height,overflow-auto,...
+        // for space between scrollbar and content use padding for this container too
+        @supports ((scrollbar-width: auto) and (scrollbar-color: auto)) {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-bg-color) var(--scrollbar-color);
+        }
+        // @supports not ((scrollbar-width: auto) or (scrollbar-color: auto)) {}
+        @supports selector(::-webkit-scrollbar-thumb) {
+            &::-webkit-scrollbar {
+                width: 12px;
+            }
+            &::-webkit-scrollbar-track {
+                background: var(--scrollbar-color);
+            }
+            &::-webkit-scrollbar-thumb {
+                background-color: var(--scrollbar-bg-color);
+                border-radius: 20px;
+            }
+        }
+    }
+}

@@ -1,0 +1,165 @@
+.btn {
+    --outlined-border-size: 1px;
+    --outlined-filled-border-size: 1px;
+    // we set '--color' css variable from Button.tsx component
+    --color-darken-1: color-mix(in srgb, var(--color), black 15%);
+    --color-darken-2: color-mix(in srgb, var(--color), black 30%);
+    --color-darken-3: color-mix(in srgb, var(--color), black 45%);
+    --color-darken-4: color-mix(in srgb, var(--color), black 60%);
+    --color-darken-5: color-mix(in srgb, var(--color), black 75%);
+    --color-lighten-1: color-mix(in srgb, var(--color), white 20%);
+    --color-lighten-2: color-mix(in srgb, var(--color), white 45%);
+    --color-lighten-3: color-mix(in srgb, var(--color), white 65%);
+    --color-lighten-4: color-mix(in srgb, var(--color), white 85%);
+    --color-lighten-5: color-mix(in srgb, var(--color), white 95%);
+    --color-text-hover: #e7e7e7;
+    --color-text-press: #cdcdcd;
+    &.xs {
+        --space-x: 1rem;
+        --space-y: 0.5rem;
+        --circular-size: 2.25rem;
+    }
+    &.sm {
+        --space-x: 1.75rem;
+        --space-y: 0.875rem;
+        --circular-size: 3rem;
+    }
+    &.md {
+        --space-x: 2.5rem;
+        --space-y: 1.375rem;
+        --circular-size: 4rem;
+    }
+    &.lg {
+        --space-x: 3rem;
+        --space-y: 1.625rem;
+        --circular-size: 4.5rem;
+    }
+    &.xl {
+        --space-x: 3.5rem;
+        --space-y: 2rem;
+        --circular-size: 5.25rem;
+    }
+    &.hover,
+    &.press {
+        @apply transition-colors duration-300;
+    }
+    &.disabled {
+        &:disabled {
+            @apply opacity-40;
+        }
+    }
+    &.elevation-xs {
+        @apply shadow-xs;
+    }
+    &.elevation-sm {
+        @apply shadow-sm;
+    }
+    &.elevation-md {
+        @apply shadow-md;
+    }
+    &.elevation-lg {
+        @apply shadow-lg;
+    }
+    &.elevation-xl {
+        @apply shadow-xl;
+    }
+    &:not(.circular) {
+        @apply px-[var(--space-x)] py-[--space-y];
+        &.xs,
+        &.sm {
+            @apply rounded-xs;
+        }
+        &.md,
+        &.lg {
+            @apply rounded-sm;
+        }
+        &.xl {
+            @apply rounded;
+        }
+    }
+    &.circular {
+        @apply aspect-square h-[var(--circular-size)] w-[var(--circular-size)] rounded-circle px-0 py-0;
+    }
+    &.text {
+        @apply border-none bg-transparent;
+        color: var(--color);
+        &.hover {
+            &:hover {
+                background-color: var(--color-text-hover);
+            }
+        }
+        &.press {
+            &:active {
+                background-color: var(--color-text-press);
+            }
+        }
+    }
+    &.outlined {
+        @apply border-[length:var(--outlined-border-size)] border-solid bg-transparent;
+        &:not(.circular) {
+            @apply py-[calc(var(--space-y)-var(--outlined-border-size))]; //remove small part of py because of border-width
+        }
+        color: var(--color);
+        border-color: var(--color);
+        &.hover {
+            &:hover {
+                @apply text-white;
+                background-color: var(--color);
+            }
+        }
+        &.press {
+            &:active {
+                @apply text-white;
+                background-color: var(--color);
+            }
+        }
+    }
+    &.filled {
+        @apply border-none text-white;
+        background-color: var(--color);
+        &.hover {
+            &:hover {
+                background-color: var(--color-darken-1);
+            }
+        }
+        &.press {
+            &:active {
+                background-color: var(--color-darken-2);
+            }
+        }
+    }
+    &.outlined-filled {
+        @apply border-[length:var(--outlined-filled-border-size)] border-solid text-white;
+        &:not(.circular) {
+            @apply py-[calc(var(--space-y)-var(--outlined-filled-border-size))]; //remove small part of py because of border-width
+        }
+        border-color: var(--color-darken-1);
+        background-color: var(--color);
+        background-image: linear-gradient(to right, var(--color) 0%, var(--color-lighten-1) 50%, var(--color) 100%);
+        &.hover {
+            &:hover {
+                background-color: var(--color-darken-1);
+            }
+        }
+        &.press {
+            &:active {
+                background-color: var(--color-darken-2);
+            }
+        }
+    }
+    &.tonal {
+        @apply border-none;
+        color: var(--color);
+        background-color: var(--color-lighten-5);
+        &.hover {
+            &:hover {
+                background-color: var(--color-lighten-4);
+            }
+        }
+        &.press {
+            &:active {
+                background-color: var(--color-lighten-4);
+            }
+        }
+    }
+}

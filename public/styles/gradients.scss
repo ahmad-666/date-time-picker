@@ -1,0 +1,19 @@
+.primary-dash-stripe {
+    background-image: repeating-linear-gradient(-45deg, #b390ff 0px, #b390ff 4px, #a47aff 4px, #a47aff 12px);
+}
+.gray-dash-stripe {
+    background-image: repeating-linear-gradient(-45deg, #646464 0px, #646464 4px, #464646 4px, #464646 12px);
+}
+.border-gradient {
+    @apply border border-solid border-transparent;
+    -webkit-mask:
+        linear-gradient(#fff 0 0) padding-box,
+        linear-gradient(#fff 0 0) border-box;
+    mask:
+        linear-gradient(#fff 0 0) padding-box,
+        linear-gradient(#fff 0 0) border-box;
+    -webkit-mask-composite: exclude;
+    mask-composite: exclude;
+    //? Also we need to manually set something like:
+    //? background:linear-gradient(to bottom,red 0%,transparent 100%) border-box;
+}
