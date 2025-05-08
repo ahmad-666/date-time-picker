@@ -51,7 +51,7 @@ export default function MonthPicker({
                     >
                         <Button
                             variant={month.isSelected ? 'filled' : 'text'}
-                            size='md'
+                            size='sm'
                             color={color}
                             disabled={month.isDisabled}
                             onClick={() => onChange?.(month.value)}

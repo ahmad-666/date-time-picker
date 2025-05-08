@@ -16,11 +16,6 @@ dayjsExtended.extend(objectSupport);
 dayjsExtended.extend(toObject);
 dayjsExtended.extend(duration);
 dayjsExtended.extend(isBetween);
+//dayjs.extend(isToday); //don't use it because it will not work for jalali
 //* Exports ...................
 export default dayjsExtended;
-
-/*
-On localhost our system is both server/browser but on online site host is nextjs server and each user's browser is final browser.
-src/App/page.tsx:
-    const currentD = dayjs() //find current date on nextjs server like layout,pages,... and use that as point in time that will be same for all users even if they have different time,date,timezone on their systems.
-*/

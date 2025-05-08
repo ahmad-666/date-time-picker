@@ -8,7 +8,7 @@ import MonthPicker from './MonthPicker';
 import useColor from '@/hooks/useColor';
 import type { CalendarMonth as Month, CalendarDay as Day, CalendarProps } from './types';
 
-//dayjs.extend(isToday); //don't use it because it will not work for jalali
+type Step = 'calendar' | 'year-picker' | 'month-picker';
 
 export default function Calendar({
     mode = 'single',
@@ -39,14 +39,15 @@ export default function Calendar({
     },
     className = ''
 }: CalendarProps) {
+    const [step, setStep] = useState<Step>('calendar');
+    const [startD, setStartD] = useState<Dayjs>(dayjs()); //active month on first column
+    const [hoverD, setHoverD] = useState<null | Dayjs>(null);
+    const [months, setMonths] = useState<Month[]>([]);
     const parsedColor = useColor(colors.primary || 'primary');
     const parsedInRangeColor = useColor(colors.inRange || 'primary-lighten-4');
     const parsedHoverColor = useColor(colors.hover || 'primary-lighten-4');
     const parsedTodayColor = useColor(colors.today || 'secondary');
     const parsedTextColor = useColor(colors.text || 'neutral');
-    const [startD, setStartD] = useState<Dayjs>(dayjs()); //active month on first column
-    const [hoverD, setHoverD] = useState<null | Dayjs>(null);
-    const [months, setMonths] = useState<Month[]>([]);
     const isJalali = calendar === 'jalali';
     const dir = calendar === 'gregory' ? 'ltr' : 'rtl';
     const weekdays =
@@ -57,9 +58,25 @@ export default function Calendar({
             minD: min && dayjs(min, { jalali: isJalali }).calendar(calendar),
             maxD: max && dayjs(max, { jalali: isJalali }).calendar(calendar),
             valStartD: value[0] && dayjs(value[0], { jalali: isJalali }).calendar(calendar),
-            valEndD: value[1] && dayjs(value[1], { jalali: isJalali }).calendar(calendar)
+            valEndD:
+                value[mode === 'range' ? 1 : 0] &&
+                dayjs(value[mode === 'range' ? 1 : 0], { jalali: isJalali }).calendar(calendar)
         };
-    }, [value, min, max, isJalali, calendar]);
+    }, [mode, value, min, max, isJalali, calendar]);
+    const minMax = useMemo(() => {
+        const { minD, maxD } = dates;
+        const startDYear = +startD.format('YYYY');
+        const minYear = minD ? +minD.format('YYYY') : undefined;
+        const maxYear = maxD ? +maxD.format('YYYY') : undefined;
+        const minMonth = minD && minYear === startDYear ? +minD.format('M') : undefined;
+        const maxMonth = maxD && maxYear === startDYear ? +maxD.format('M') : undefined;
+        return {
+            minYear,
+            maxYear,
+            minMonth,
+            maxMonth
+        };
+    }, [dates, startD]);
     const onPrevMonth = () => {
         setStartD((old) => old.subtract(1, 'month'));
     };
@@ -155,162 +172,209 @@ export default function Calendar({
 
     return (
         <div dir={dir} className={`${className}`}>
-            <div
-                className={`divide flex divide-x divide-solid divide-neutral-lighten-5 ${dir === 'rtl' ? 'divide-x-reverse' : ''}`}
-            >
-                {months.map((month, i) => {
-                    const isFirstMonth = i === 0;
-                    const isLastMonth = i === months.length - 1;
-                    return (
-                        <div key={month.name} className='px-8 first:ps-0 last:pe-0'>
-                            <div
-                                style={{
-                                    width: `${size * 7}px`
-                                }}
-                            >
-                                <div className='flex items-center gap-5'>
-                                    {isFirstMonth && (
-                                        <Button
-                                            variant='outlined'
-                                            size='xs'
-                                            color='neutral-lighten-5'
-                                            className='shrink-0 !p-1'
-                                            onClick={onPrevMonth}
-                                        >
-                                            <Icon
-                                                icon={dir === 'ltr' ? 'mdi:chevron-left' : 'mdi:chevron-right'}
-                                                size='md'
-                                                color='neutral'
-                                            />
-                                        </Button>
-                                    )}
-                                    <div className={`flex grow items-center justify-center gap-2`}>
-                                        <p role='button' onClick={() => {}} className='text-title-md text-neutral'>
-                                            {month.name}
-                                        </p>
-                                        <p
-                                            role='button'
-                                            onClick={() => {}}
-                                            className='text-title-md text-neutral-lighten-2'
-                                        >
-                                            {month.year}
-                                        </p>
+            {step === 'calendar' && (
+                <div
+                    className={`divide flex divide-x divide-solid divide-neutral-lighten-5 ${dir === 'rtl' ? 'divide-x-reverse' : ''}`}
+                >
+                    {months.map((month, i) => {
+                        const isFirstMonth = i === 0;
+                        const isLastMonth = i === months.length - 1;
+                        return (
+                            <div key={month.name} className='px-8 first:ps-0 last:pe-0'>
+                                <div
+                                    style={{
+                                        width: `${size * 7}px`
+                                    }}
+                                >
+                                    <div className='flex items-center gap-5'>
+                                        {isFirstMonth && (
+                                            <Button
+                                                variant='outlined'
+                                                size='xs'
+                                                color='neutral-lighten-5'
+                                                className='shrink-0 !p-1'
+                                                onClick={onPrevMonth}
+                                            >
+                                                <Icon
+                                                    icon={dir === 'ltr' ? 'mdi:chevron-left' : 'mdi:chevron-right'}
+                                                    size='md'
+                                                    color='neutral'
+                                                />
+                                            </Button>
+                                        )}
+                                        <div className={`flex grow items-center justify-center gap-2`}>
+                                            <p
+                                                role='button'
+                                                onClick={() => setStep('month-picker')}
+                                                className='text-title-md text-neutral'
+                                            >
+                                                {month.name}
+                                            </p>
+                                            <p
+                                                role='button'
+                                                onClick={() => setStep('year-picker')}
+                                                className='text-title-md text-neutral-lighten-2'
+                                            >
+                                                {month.year}
+                                            </p>
+                                        </div>
+                                        {isLastMonth && (
+                                            <Button
+                                                variant='outlined'
+                                                size='xs'
+                                                color='neutral-lighten-5'
+                                                className='shrink-0 !p-1'
+                                                onClick={onNextMonth}
+                                            >
+                                                <Icon
+                                                    icon={dir === 'ltr' ? 'mdi:chevron-right' : 'mdi:chevron-left'}
+                                                    size='md'
+                                                    color='neutral'
+                                                />
+                                            </Button>
+                                        )}
                                     </div>
-                                    {isLastMonth && (
-                                        <Button
-                                            variant='outlined'
-                                            size='xs'
-                                            color='neutral-lighten-5'
-                                            className='shrink-0 !p-1'
-                                            onClick={onNextMonth}
-                                        >
-                                            <Icon
-                                                icon={dir === 'ltr' ? 'mdi:chevron-right' : 'mdi:chevron-left'}
-                                                size='md'
-                                                color='neutral'
-                                            />
-                                        </Button>
-                                    )}
-                                </div>
-                                <div className='mt-5'>
-                                    <ul className='grid grid-cols-7 gap-0'>
-                                        {weekdays.map((weekday) => (
-                                            <li key={weekday} className='text-center text-title-sm text-neutral'>
-                                                {weekday}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <div className='mt-5'>
-                                    <ul className='grid grid-cols-7 gap-0'>
-                                        {month.days.map((day) => {
-                                            const {
-                                                d,
-                                                date,
-                                                day: monthDay,
-                                                isSelected,
-                                                isInRange,
-                                                isToday,
-                                                isDisabled,
-                                                isOutside
-                                            } = day;
-                                            const { valStartD } = dates;
-                                            const isStart = value[0] === date;
-                                            const isEnd = value[1] === date;
-                                            const isStartEndSame = value[0] === value[1];
-                                            const isHover = !!hoverD?.isSame(d, 'date');
-                                            const isHoverBeforeStart = !!hoverD?.isBefore(valStartD, 'date');
-                                            const isHoverAfterStart = !!hoverD?.isAfter(valStartD, 'date');
-                                            let bgColor = 'transparent';
-                                            let color = parsedTextColor;
-                                            let radius = '0';
-                                            let bgColorOverlay = 'transparent';
-                                            let radiusOverlay = '0';
-                                            if (isSelected) {
-                                                bgColor = parsedColor;
-                                                color = '#fff';
-                                                radius = '50%';
-                                                if (mode === 'range' && !isStartEndSame) {
+                                    <div className='mt-5'>
+                                        <ul className='grid grid-cols-7 gap-0'>
+                                            {weekdays.map((weekday) => (
+                                                <li key={weekday} className='text-center text-title-sm text-neutral'>
+                                                    {weekday}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className='mt-5'>
+                                        <ul className='grid grid-cols-7 gap-0'>
+                                            {month.days.map((day) => {
+                                                const {
+                                                    d,
+                                                    date,
+                                                    day: monthDay,
+                                                    isSelected,
+                                                    isInRange,
+                                                    isToday,
+                                                    isDisabled,
+                                                    isOutside
+                                                } = day;
+                                                const { valStartD } = dates;
+                                                const isStart = value[0] === date;
+                                                const isEnd = value[1] === date;
+                                                const isStartEndSame = value[0] === value[1];
+                                                const isHover = !!hoverD?.isSame(d, 'date');
+                                                const isHoverBeforeStart = !!hoverD?.isBefore(valStartD, 'date');
+                                                const isHoverAfterStart = !!hoverD?.isAfter(valStartD, 'date');
+                                                let bgColor = 'transparent';
+                                                let color = parsedTextColor;
+                                                let radius = '0';
+                                                let bgColorOverlay = 'transparent';
+                                                let radiusOverlay = '0';
+                                                if (isSelected) {
+                                                    bgColor = parsedColor;
+                                                    color = '#fff';
+                                                    radius = '50%';
+                                                    if (mode === 'range' && !isStartEndSame) {
+                                                        bgColorOverlay = parsedInRangeColor;
+                                                        radiusOverlay = '50%';
+                                                        if (isStart && (isHoverAfterStart || value.length === 2))
+                                                            radiusOverlay =
+                                                                dir === 'ltr' ? '50% 0 0 50%' : '0 50% 50% 0';
+                                                        else if (isEnd || isHoverBeforeStart)
+                                                            radiusOverlay =
+                                                                dir === 'ltr' ? '0 50% 50% 0' : '50% 0 0 50%';
+                                                    }
+                                                } else if (isInRange) {
                                                     bgColorOverlay = parsedInRangeColor;
+                                                } else if (isHover) {
+                                                    bgColorOverlay = parsedHoverColor;
                                                     radiusOverlay = '50%';
-                                                    if (isStart && (isHoverAfterStart || value.length === 2))
-                                                        radiusOverlay = dir === 'ltr' ? '50% 0 0 50%' : '0 50% 50% 0';
-                                                    else if (isEnd || isHoverBeforeStart)
-                                                        radiusOverlay = dir === 'ltr' ? '0 50% 50% 0' : '50% 0 0 50%';
+                                                } else if (isToday) {
+                                                    bgColor = parsedTodayColor;
+                                                    color = '#fff';
+                                                    radius = '50%';
+                                                } else if (isDisabled) {
                                                 }
-                                            } else if (isInRange) {
-                                                bgColorOverlay = parsedInRangeColor;
-                                            } else if (isHover) {
-                                                bgColorOverlay = parsedHoverColor;
-                                                radiusOverlay = '50%';
-                                            } else if (isToday) {
-                                                bgColor = parsedTodayColor;
-                                                color = '#fff';
-                                                radius = '50%';
-                                            } else if (isDisabled) {
-                                            }
 
-                                            return (
-                                                <li
-                                                    key={date}
-                                                    role={!isDisabled ? 'button' : 'listitem'}
-                                                    onMouseEnter={() => setHoverD(d)}
-                                                    onMouseLeave={() => setHoverD(null)}
-                                                    onClick={() => onDayClick(day)}
-                                                    className={`relative z-1 aspect-square overflow-hidden rounded-none bg-transparent ${isOutside || isDisabled ? 'pointer-events-none' : ''} ${isOutside ? 'opacity-0' : isDisabled ? 'opacity-50' : ''}`}
-                                                    style={{
-                                                        width: `${size}px`,
-                                                        height: `${size}px`
-                                                    }}
-                                                >
-                                                    <div
-                                                        className={`flex h-full w-full items-center justify-center text-body-md ${classNames.day} ${isSelected ? classNames.selected : ''} ${isInRange ? classNames.inRange : ''} ${isHover ? classNames.hover : ''} ${isToday ? classNames.today : ''} ${isDisabled ? classNames.disabled : ''}`}
+                                                return (
+                                                    <li
+                                                        key={date}
+                                                        role={!isDisabled ? 'button' : 'listitem'}
+                                                        onMouseEnter={() => setHoverD(d)}
+                                                        onMouseLeave={() => setHoverD(null)}
+                                                        onClick={() => onDayClick(day)}
+                                                        className={`relative z-1 aspect-square overflow-hidden rounded-none bg-transparent ${isOutside || isDisabled ? 'pointer-events-none' : ''} ${isOutside ? 'opacity-0' : isDisabled ? 'opacity-50' : ''}`}
                                                         style={{
-                                                            backgroundColor: bgColor,
-                                                            color,
-                                                            borderRadius: radius
+                                                            width: `${size}px`,
+                                                            height: `${size}px`
                                                         }}
                                                     >
-                                                        {dayRender?.(day) || monthDay}
-                                                    </div>
-                                                    <div
-                                                        className='pointer-events-none absolute left-0 top-0 -z-1 h-full w-full'
-                                                        style={{
-                                                            backgroundColor: bgColorOverlay,
-                                                            borderRadius: radiusOverlay
-                                                        }}
-                                                    />{' '}
-                                                    {/* only act as overlay  */}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
+                                                        <div
+                                                            className={`flex h-full w-full items-center justify-center text-body-md ${classNames.day} ${isSelected ? classNames.selected : ''} ${isInRange ? classNames.inRange : ''} ${isHover ? classNames.hover : ''} ${isToday ? classNames.today : ''} ${isDisabled ? classNames.disabled : ''}`}
+                                                            style={{
+                                                                backgroundColor: bgColor,
+                                                                color,
+                                                                borderRadius: radius
+                                                            }}
+                                                        >
+                                                            {dayRender?.(day) || monthDay}
+                                                        </div>
+                                                        <div
+                                                            className='pointer-events-none absolute left-0 top-0 -z-1 h-full w-full'
+                                                            style={{
+                                                                backgroundColor: bgColorOverlay,
+                                                                borderRadius: radiusOverlay
+                                                            }}
+                                                        />{' '}
+                                                        {/* only act as overlay  */}
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
+            {step === 'year-picker' && (
+                <div>
+                    <div className='flex justify-end'>
+                        <button onClick={() => setStep('calendar')} className='mb-2'>
+                            <Icon icon='mdi:close' size='md' color='neutral-lighten-3' />
+                        </button>
+                    </div>
+                    <YearPicker
+                        value={+startD.format('YYYY')}
+                        onChange={(val) => {
+                            setStartD((old) => old.year(val));
+                            setStep('calendar');
+                        }}
+                        offset={50}
+                        min={minMax.minYear}
+                        max={minMax.maxYear}
+                        color={colors.primary}
+                    />
+                </div>
+            )}
+            {step === 'month-picker' && (
+                <div>
+                    <div className='flex justify-end'>
+                        <button onClick={() => setStep('calendar')} className='mb-2'>
+                            <Icon icon='mdi:close' size='md' color='neutral-lighten-3' />
+                        </button>
+                    </div>
+                    <MonthPicker
+                        value={+startD.format('M')}
+                        onChange={(val) => {
+                            setStartD((old) => old.month(val - 1)); //dayjs month is zero-index but MonthPicker expect month to be [1,12]
+                            setStep('calendar');
+                        }}
+                        min={minMax.minMonth}
+                        max={minMax.maxMonth}
+                        color={colors.primary}
+                    />
+                </div>
+            )}
         </div>
     );
 }
@@ -322,7 +386,7 @@ export default function Calendar({
 //     calendar='gregory' format='YYYY-MM-DD'
 //     min='2025/04/05' max="'2025/04/25'"
 // />
-//* #2: range mode with update calendar/value/min,max props:
+//* #2: range mode with update calendar/value/min,max and dayRender props:
 // const [calendar, setCalendar] = useState<'gregory' | 'jalali'>('gregory');
 // const [dates, setDates] = useState<string[]>([]);
 // const [minMax, setMinMax] = useState({min: '2025/01/03',max: '2025/12/23'});
@@ -347,4 +411,5 @@ export default function Calendar({
 // <h1>min,max: {JSON.stringify(minMax)}</h1>
 // <Calendar mode='range' value={dates} onChange={(v) => setDates(v)} cols={2}   size={50}
 //     calendar={calendar} format={format}  min={minMax.min} max={minMax.max}
+//     dayRender={({ d, date, day, isDisabled, isOutside, isToday, isInRange, isSelected }) => <p>{date}</p>}
 // />

@@ -21,8 +21,8 @@ export default function Page() {
                 format='YYYY-MM-DD'
                 cols={1}
                 size={50}
-                min='2025/04/05'
-                max="'2025/04/25'"
+                min='2024/05/05'
+                max="'2026/05/25'"
             />
         </div>
     );

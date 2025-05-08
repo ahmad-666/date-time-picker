@@ -52,7 +52,7 @@ export default function YearPicker({
                     >
                         <Button
                             variant={year.isSelected ? 'filled' : 'text'}
-                            size='md'
+                            size='sm'
                             color={color}
                             disabled={year.isDisabled}
                             onClick={() => onChange?.(year.value)}
