@@ -1,12 +1,12 @@
+'use client';
+
 import { useEffect, useCallback, type ChangeEvent, type KeyboardEvent, type FocusEvent } from 'react';
 import { type Dayjs } from 'dayjs';
 import dayjs from '@/libs/dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 import Button from '@/components/Button';
 import Icon from '@/components/Icon';
+import DEFAULT_COLORS from './colors';
 import type { TimeVariant, TimeInputProps, TimePickerProps } from './types';
-
-dayjs.extend(customParseFormat);
 
 const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInputProps) => {
     const isMin = !!(typeof min === 'number' && value <= min);
@@ -57,13 +57,13 @@ const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInp
         <div className={`flex flex-col items-center ${className}`}>
             <Button
                 variant='outlined'
-                color='neutral-lighten-5'
+                color={DEFAULT_COLORS.textLighten}
                 size='xs'
                 disabled={isMax}
                 onClick={add}
                 className='!p-1.5'
             >
-                <Icon icon='mdi:chevron-up' size='md' color='neutral' />
+                <Icon icon='mdi:chevron-up' size='md' color={DEFAULT_COLORS.text} />
             </Button>
             <div className='mb-5 mt-4'>
                 <input
@@ -73,19 +73,19 @@ const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInp
                     onKeyDown={onInputKeyDown}
                     onFocus={onInputFocus}
                     onBlur={onInputBlur}
-                    className='w-16 appearance-none border-none text-center text-title-lg text-neutral outline-none'
+                    className='w-16 appearance-none border-none text-center text-title-lg text-slate-700 outline-none'
                 />
-                <p className='mt-0 text-center text-title-sm font-semibold text-neutral-lighten-2'>{title}</p>
+                <p className='mt-0 text-center text-title-sm font-semibold text-slate-400'>{title}</p>
             </div>
             <Button
                 variant='outlined'
-                color='neutral-lighten-5'
+                color={DEFAULT_COLORS.textLighten}
                 size='xs'
                 disabled={isMin}
                 onClick={subtract}
                 className='!p-1.5'
             >
-                <Icon icon='mdi:chevron-down' size='md' color='neutral' />
+                <Icon icon='mdi:chevron-down' size='md' color={DEFAULT_COLORS.text} />
             </Button>
         </div>
     );

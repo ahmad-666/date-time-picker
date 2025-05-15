@@ -45,11 +45,20 @@ export type CalendarMonth = {
     days: CalendarDay[];
 };
 export type Colors = {
+    /** selection color */
     primary?: string;
+    /** for color of between dates */
     inRange?: string;
+    /** hover color */
     hover?: string;
+    /** today color */
     today?: string;
+    /** default day color , text colors , ... */
     text?: string;
+    /** default lighten color ... for close icons , outline of prev/next month , ... */
+    textLighten?: string;
+    /** default error color ... use clear btn , ... */
+    error?: string;
 };
 export type ClassNames = {
     day?: string;
@@ -89,7 +98,7 @@ export type MonthPickerProps = {
     /** css className of top container */
     className?: string;
 };
-export type CalendarProps = {
+export type DatePickerProps = {
     /** can be 'single' | 'range' | 'multiple' */
     mode?: Mode;
     /** can be 'gregory' | 'jalali' */
@@ -98,13 +107,13 @@ export type CalendarProps = {
     format?: string;
     /** how many months we want to render */
     cols?: number;
-    /** value of calendar , needs to be in proper format , we always use string[] e.g ['2020-10-10','2022-01-10'] */
+    /** value of calendar , needs to be in  proper calendar-type/format , we always use string[] e.g ['2020-10-10','2022-01-10'] */
     value: string[];
     /** for 2-way data binding of value prop */
     onChange?: (newValue: string[]) => void;
-    /** min accepted date e.g '2020-01-01' ... needs to be in proper format */
+    /** min accepted date e.g '2020-01-01' ... needs to be in proper calendar-type/format */
     min?: string;
-    /** max accepted date e.g '2022-12-30' ... needs to be in proper format */
+    /** max accepted date e.g '2022-12-30' ... needs to be in proper calendar-type/format */
     max?: string;
     /** size of each month day */
     size?: number;
@@ -146,4 +155,16 @@ export type TimePickerProps = {
     max?: string;
     /** css className of container */
     className?: string;
+};
+export type DateTimePickerProps = DatePickerProps & {
+    /** specify type of picker('date','time','datetime') */
+    type?: Type;
+    /** show toggle button for change calendar type */
+    showCalendarBtn?: boolean;
+    /** show today button for move calendar to today  */
+    showTodayBtn?: boolean;
+    /** show clear button for clear picker values */
+    showClearBtn?: boolean;
+    /** update calendar type('gregory','jalali') */
+    onCalendarChange?: (newVal: Calendar) => void;
 };

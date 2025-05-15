@@ -1,6 +1,9 @@
+'use client';
+
 import { useState, useRef, useEffect, useCallback } from 'react';
 import dayjs from '@/libs/dayjs';
 import Button from '@/components/Button';
+import DEFAULT_COLORS from './colors';
 import type { Month, MonthPickerProps } from './types';
 
 export default function MonthPicker({
@@ -8,7 +11,7 @@ export default function MonthPicker({
     onChange,
     min = 1,
     max = 12,
-    color = 'primary',
+    color = DEFAULT_COLORS.primary,
     className = ''
 }: MonthPickerProps) {
     const activeMonth = useRef<HTMLLIElement>(null!);
@@ -40,7 +43,7 @@ export default function MonthPicker({
 
     return (
         <div className={`overflow-auto ${className}`}>
-            <p className='text-center text-title-md text-neutral'>Select Month</p>
+            <p className='text-center text-title-md text-slate-700'>Select Month</p>
             <ul className='mt-3 grid grid-cols-2 gap-0 mobile:grid-cols-3 tablet:grid-cols-4 laptop:grid-cols-6'>
                 {months.map((month) => (
                     <li

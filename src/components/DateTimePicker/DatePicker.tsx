@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { type Dayjs } from 'dayjs';
 import dayjs from '@/libs/dayjs';
@@ -6,48 +8,42 @@ import Icon from '@/components/Icon';
 import YearPicker from './YearPicker';
 import MonthPicker from './MonthPicker';
 import useColor from '@/hooks/useColor';
-import type { CalendarMonth as Month, CalendarDay as Day, CalendarProps } from './types';
+import DEFAULT_COLORS from './colors';
+import type { CalendarMonth as Month, CalendarDay as Day, DatePickerProps } from './types';
 
 type Step = 'calendar' | 'year-picker' | 'month-picker';
 
-export default function Calendar({
+export default function DatePicker({
     mode = 'single',
     calendar = 'gregory',
     format = 'YYYY-MM-DD',
     cols = 1,
-    value = [], //something like ['2020-10-05','2022-05-10'] ... for all mode we use string[] to handle all scenarios easily
+    value = [],
     onChange,
     min,
     max,
-    colors = {
-        primary: 'primary', //selection color
-        inRange: 'primary-lighten-4', //for color of between dates
-        hover: 'primary-lighten-4', //hover color
-        today: 'secondary', //today color
-        text: 'neutral' //default day color
-        //no need to define any color for disabled because we reduce opacity for disabled days
-    },
+    colors = DEFAULT_COLORS,
     size = 50,
     dayRender,
     classNames = {
-        day: '', //basic css className of each day
-        selected: '', //css className of selected dates in days
-        inRange: '', //css className of in-range dates in days(e.g dates between first/last selected dates)
-        hover: '', //css className for hover days
-        today: '', //css className of today date in days
-        disabled: '' //css className of disabled dates in days
+        day: '',
+        selected: '',
+        inRange: '',
+        hover: '',
+        today: '',
+        disabled: ''
     },
     className = ''
-}: CalendarProps) {
+}: DatePickerProps) {
     const [step, setStep] = useState<Step>('calendar');
     const [startD, setStartD] = useState<Dayjs>(dayjs()); //active month on first column
     const [hoverD, setHoverD] = useState<null | Dayjs>(null);
     const [months, setMonths] = useState<Month[]>([]);
-    const parsedColor = useColor(colors.primary || 'primary');
-    const parsedInRangeColor = useColor(colors.inRange || 'primary-lighten-4');
-    const parsedHoverColor = useColor(colors.hover || 'primary-lighten-4');
-    const parsedTodayColor = useColor(colors.today || 'secondary');
-    const parsedTextColor = useColor(colors.text || 'neutral');
+    const parsedColor = useColor(colors.primary || DEFAULT_COLORS.primary);
+    const parsedInRangeColor = useColor(colors.inRange || DEFAULT_COLORS.inRange);
+    const parsedHoverColor = useColor(colors.hover || DEFAULT_COLORS.hover);
+    const parsedTodayColor = useColor(colors.today || DEFAULT_COLORS.today);
+    const parsedTextColor = useColor(colors.text || DEFAULT_COLORS.text);
     const isJalali = calendar === 'jalali';
     const dir = calendar === 'gregory' ? 'ltr' : 'rtl';
     const weekdays =
@@ -174,7 +170,7 @@ export default function Calendar({
         <div dir={dir} className={`${className}`}>
             {step === 'calendar' && (
                 <div
-                    className={`divide flex divide-x divide-solid divide-neutral-lighten-5 ${dir === 'rtl' ? 'divide-x-reverse' : ''}`}
+                    className={`divide flex divide-x divide-solid divide-slate-200 ${dir === 'rtl' ? 'divide-x-reverse' : ''}`}
                 >
                     {months.map((month, i) => {
                         const isFirstMonth = i === 0;
@@ -191,14 +187,14 @@ export default function Calendar({
                                             <Button
                                                 variant='outlined'
                                                 size='xs'
-                                                color='neutral-lighten-5'
+                                                color={colors.textLighten}
                                                 className='shrink-0 !p-1'
                                                 onClick={onPrevMonth}
                                             >
                                                 <Icon
                                                     icon={dir === 'ltr' ? 'mdi:chevron-left' : 'mdi:chevron-right'}
                                                     size='md'
-                                                    color='neutral'
+                                                    color={colors.text}
                                                 />
                                             </Button>
                                         )}
@@ -206,14 +202,14 @@ export default function Calendar({
                                             <p
                                                 role='button'
                                                 onClick={() => setStep('month-picker')}
-                                                className='text-title-md text-neutral'
+                                                className='text-title-md text-slate-700'
                                             >
                                                 {month.name}
                                             </p>
                                             <p
                                                 role='button'
                                                 onClick={() => setStep('year-picker')}
-                                                className='text-title-md text-neutral-lighten-2'
+                                                className='text-title-md text-slate-400'
                                             >
                                                 {month.year}
                                             </p>
@@ -222,14 +218,14 @@ export default function Calendar({
                                             <Button
                                                 variant='outlined'
                                                 size='xs'
-                                                color='neutral-lighten-5'
+                                                color={colors.textLighten}
                                                 className='shrink-0 !p-1'
                                                 onClick={onNextMonth}
                                             >
                                                 <Icon
                                                     icon={dir === 'ltr' ? 'mdi:chevron-right' : 'mdi:chevron-left'}
                                                     size='md'
-                                                    color='neutral'
+                                                    color={colors.text}
                                                 />
                                             </Button>
                                         )}
@@ -237,7 +233,7 @@ export default function Calendar({
                                     <div className='mt-5'>
                                         <ul className='grid grid-cols-7 gap-0'>
                                             {weekdays.map((weekday) => (
-                                                <li key={weekday} className='text-center text-title-sm text-neutral'>
+                                                <li key={weekday} className='text-center text-title-sm text-slate-700'>
                                                     {weekday}
                                                 </li>
                                             ))}
@@ -340,7 +336,7 @@ export default function Calendar({
                 <div>
                     <div className='flex justify-end'>
                         <button onClick={() => setStep('calendar')} className='mb-2'>
-                            <Icon icon='mdi:close' size='md' color='neutral-lighten-3' />
+                            <Icon icon='mdi:close' size='md' color={colors.error} />
                         </button>
                     </div>
                     <YearPicker
@@ -360,7 +356,7 @@ export default function Calendar({
                 <div>
                     <div className='flex justify-end'>
                         <button onClick={() => setStep('calendar')} className='mb-2'>
-                            <Icon icon='mdi:close' size='md' color='neutral-lighten-3' />
+                            <Icon icon='mdi:close' size='md' color={colors.error} />
                         </button>
                     </div>
                     <MonthPicker
@@ -382,7 +378,7 @@ export default function Calendar({
 //? Usage:
 //* #1: simple example with single mode:
 // const [dates, setDates] = useState<string[]>(['2025/04/10']);
-// <Calendar mode='single' value={dates} onChange={(v) => setDates(v)}  cols={1}  size={50}
+// <DatePickerProps mode='single' value={dates} onChange={(v) => setDates(v)}  cols={1}  size={50}
 //     calendar='gregory' format='YYYY-MM-DD'
 //     min='2025/04/05' max="'2025/04/25'"
 // />
@@ -409,7 +405,7 @@ export default function Calendar({
 // </button>
 // <h1>value: {JSON.stringify(dates)}</h1>
 // <h1>min,max: {JSON.stringify(minMax)}</h1>
-// <Calendar mode='range' value={dates} onChange={(v) => setDates(v)} cols={2}   size={50}
+// <DatePickerProps mode='range' value={dates} onChange={(v) => setDates(v)} cols={2}   size={50}
 //     calendar={calendar} format={format}  min={minMax.min} max={minMax.max}
 //     dayRender={({ d, date, day, isDisabled, isOutside, isToday, isInRange, isSelected }) => <p>{date}</p>}
 // />
