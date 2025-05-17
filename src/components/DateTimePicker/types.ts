@@ -145,6 +145,8 @@ export type TimeInputProps = {
     min?: number;
     /** min accepted value e.g 10 */
     max?: number;
+    /** control if we should disable time-picker or not */
+    disabled?: boolean;
     /** css className of container */
     className?: string;
 };
@@ -163,6 +165,8 @@ export type TimePickerProps = {
     min?: string;
     /** max accepted time e.g '14:55' ... needs to be in proper format */
     max?: string;
+    /** control if we should disable time-picker or not */
+    disabled?: boolean;
     /** css className of container */
     className?: string;
 };

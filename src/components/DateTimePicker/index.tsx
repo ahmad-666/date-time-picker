@@ -145,17 +145,20 @@ export default function DateTimePicker({
         onChange?.(checkMinMax(newVal));
     };
     const onTimePickerChangeHandler = (val: string, i: number) => {
-        const valueCopy = [...value];
-        const oldValue = valueCopy[i];
-        const hour = dayjs(val, formats.timePicker).get('hour');
-        const minute = dayjs(val, formats.timePicker).get('minute');
-        const newValue = dayjs(oldValue, { jalali: isJalali })
-            .calendar(calendar)
-            .set('hour', hour)
-            .set('minute', minute)
-            .format(format);
-        valueCopy[i] = newValue;
-        onChange?.(checkMinMax(valueCopy));
+        //we only update time if we already have a value like date,datetime
+        if (value[i]) {
+            const valueCopy = [...value];
+            const oldValue = valueCopy[i];
+            const hour = dayjs(val, formats.timePicker).get('hour');
+            const minute = dayjs(val, formats.timePicker).get('minute');
+            const newValue = dayjs(oldValue, { jalali: isJalali })
+                .calendar(calendar)
+                .set('hour', hour)
+                .set('minute', minute)
+                .format(format);
+            valueCopy[i] = newValue;
+            onChange?.(checkMinMax(valueCopy));
+        }
     };
 
     return (
@@ -203,6 +206,7 @@ export default function DateTimePicker({
                             min={minMax.timePickerMin}
                             max={minMax.timePickerMax}
                             format={formats.timePicker}
+                            disabled={!value[0]}
                         />
                         {mode === 'range' && (
                             <TimePicker
@@ -213,6 +217,7 @@ export default function DateTimePicker({
                                 min={minMax.timePickerMin}
                                 max={minMax.timePickerMax}
                                 format={formats.timePicker}
+                                disabled={!value[1]}
                             />
                         )}
                     </div>

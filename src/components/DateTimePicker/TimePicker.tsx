@@ -8,7 +8,7 @@ import Icon from '@/components/Icon';
 import DEFAULT_COLORS from './colors';
 import type { TimeVariant, TimeInputProps, TimePickerProps } from './types';
 
-const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInputProps) => {
+const Input = ({ value, onChange, title, min = 0, max, disabled = false, className = '' }: TimeInputProps) => {
     const isMin = !!(typeof min === 'number' && value <= min);
     const isMax = !!(typeof max === 'number' && value >= max);
     const updateValue = useCallback(
@@ -56,12 +56,12 @@ const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInp
     }, [value, updateValue]);
 
     return (
-        <div className={`flex flex-col items-center ${className}`}>
+        <div className={`flex flex-col items-center ${disabled ? 'pointer-events-none opacity-50' : ''} ${className}`}>
             <Button
                 variant='outlined'
                 color={DEFAULT_COLORS.textLighten}
                 size='xs'
-                disabled={isMax}
+                disabled={disabled || isMax}
                 onClick={add}
                 className='!p-0.5'
             >
@@ -83,7 +83,7 @@ const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInp
                 variant='outlined'
                 color={DEFAULT_COLORS.textLighten}
                 size='xs'
-                disabled={isMin}
+                disabled={disabled || isMin}
                 onClick={subtract}
                 className='!p-0.5'
             >
@@ -101,6 +101,7 @@ export default function TimePicker({
     format = 'HH:mm',
     min,
     max,
+    disabled = false,
     className = ''
 }: TimePickerProps) {
     const showHour = variants.includes('hour');
@@ -143,6 +144,7 @@ export default function TimePicker({
                         title='Hour'
                         min={minMax.minHour}
                         max={minMax.maxHour}
+                        disabled={disabled}
                     />
                 )}
                 {showMinute && (
@@ -152,6 +154,7 @@ export default function TimePicker({
                         title='Minute'
                         min={minMax.minMinute}
                         max={minMax.maxMinute}
+                        disabled={disabled}
                     />
                 )}
                 {showSecond && (
@@ -161,6 +164,7 @@ export default function TimePicker({
                         title='Second'
                         min={minMax.minSecond}
                         max={minMax.maxSecond}
+                        disabled={disabled}
                     />
                 )}
             </div>
@@ -169,5 +173,6 @@ export default function TimePicker({
 }
 
 //? Usage:
+//! We should not use this component directly, instead use DateTimePicker component
 // const [time, setTime] = useState('');
 // <TimePicker variants={['hour', 'minute']} value={time} onChange={(v) => setTime(v)} format='HH:mm' min='05:45' max='15:05' />

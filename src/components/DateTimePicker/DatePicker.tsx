@@ -382,13 +382,17 @@ export default function DatePicker({
 }
 
 //? Usage:
+//! We should not use this component directly, instead use DateTimePicker component
 //* #1: simple example with single mode:
+// const [startDate, setStartDate] = useState<Dayjs>(dayjs().calendar(calendar));
 // const [dates, setDates] = useState<string[]>(['2025/04/10']);
-// <DatePickerProps mode='single' value={dates} onChange={(v) => setDates(v)}  cols={1}  size={50}
+// <DatePickerProps mode='single' value={dates} onChange={(v) => setDates(v)}
+//     startDate={startDate} onStartDateChange={setStartDate} cols={1}  size={50}
 //     calendar='gregory' format='YYYY-MM-DD'
 //     min='2025/04/05' max="'2025/04/25'"
 // />
 //* #2: range mode with update calendar/value/min,max and dayRender props:
+// const [startDate, setStartDate] = useState<Dayjs>(dayjs().calendar(calendar));
 // const [calendar, setCalendar] = useState<'gregory' | 'jalali'>('gregory');
 // const [dates, setDates] = useState<string[]>([]);
 // const [minMax, setMinMax] = useState({min: '2025/01/03',max: '2025/12/23'});
@@ -411,7 +415,8 @@ export default function DatePicker({
 // </button>
 // <h1>value: {JSON.stringify(dates)}</h1>
 // <h1>min,max: {JSON.stringify(minMax)}</h1>
-// <DatePickerProps mode='range' value={dates} onChange={(v) => setDates(v)} cols={2}   size={50}
+// <DatePickerProps mode='range' value={dates} onChange={(v) => setDates(v)}
+//     startDate={startDate} onStartDateChange={setStartDate} cols={2} size={50}
 //     calendar={calendar} format={format}  min={minMax.min} max={minMax.max}
 //     dayRender={({ d, date, day, isDisabled, isOutside, isToday, isInRange, isSelected }) => <p>{date}</p>}
 // />
