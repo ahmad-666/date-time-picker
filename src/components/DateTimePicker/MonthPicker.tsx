@@ -9,6 +9,7 @@ import type { Month, MonthPickerProps } from './types';
 export default function MonthPicker({
     value,
     onChange,
+    calendar = 'gregory',
     min = 1,
     max = 12,
     color = DEFAULT_COLORS.primary,
@@ -16,11 +17,15 @@ export default function MonthPicker({
 }: MonthPickerProps) {
     const activeMonth = useRef<HTMLLIElement>(null!);
     const [months, setMonths] = useState<Month[]>([]);
+    const locale = calendar === 'gregory' ? 'en' : 'fa';
     const generateMonths = useCallback(() => {
         const newMonths: Month[] = [];
         for (let i = 1; i <= 12; i++) {
             //generate months
-            const m = dayjs().month(i - 1);
+            const m = dayjs()
+                .calendar(calendar)
+                .locale(locale)
+                .month(i - 1);
             newMonths.push({
                 value: i,
                 name: m.format('MMMM'),
@@ -29,7 +34,7 @@ export default function MonthPicker({
             });
         }
         setMonths(newMonths);
-    }, [value, min, max]);
+    }, [value, locale, calendar, min, max]);
     useEffect(() => {
         //generate list of months
         generateMonths();

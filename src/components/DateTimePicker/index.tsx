@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, Fragment } from 'react';
+import { useState, useMemo, Fragment } from 'react';
+import { type Dayjs } from 'dayjs';
 import dayjs from '@/libs/dayjs';
 import Button from '@/components/Button';
 import DatePicker from './DatePicker';
@@ -35,9 +36,12 @@ export default function DateTimePicker({
     },
     className = ''
 }: DateTimePickerProps) {
+    const [startDate, setStartDate] = useState<Dayjs>(dayjs().calendar(calendar));
     const hasDatePicker = type === 'date' || type === 'datetime';
     const hasTimePicker = type === 'time' || type === 'datetime';
     const isJalali = calendar === 'jalali';
+    const locale = calendar === 'gregory' ? 'en' : 'fa';
+    // const dir = calendar === 'gregory' ? 'ltr' : 'rtl';
     const formats = useMemo(() => {
         let dateFormat = '';
         let timeFormat = '';
@@ -45,7 +49,7 @@ export default function DateTimePicker({
         const yearFormats = ['YY', 'YYYY'];
         const monthFormats = ['M', 'MM', 'MMM', 'MMMM'];
         const dayFormats = ['D', 'DD'];
-        const hourFormats = ['h', 'hh'];
+        const hourFormats = ['h', 'hh', 'H', 'HH'];
         const minuteFormats = ['m', 'mm'];
         const secondFormats = ['s', 'ss'];
         const dateFormats = [...yearFormats, ...monthFormats, ...dayFormats];
@@ -110,7 +114,9 @@ export default function DateTimePicker({
     const onClearHandler = () => {
         onChange?.([]);
     };
-    const onTodayHandler = () => {};
+    const onTodayHandler = () => {
+        setStartDate(dayjs().calendar(calendar).locale(locale));
+    };
     const checkMinMax = (value: string[]) => {
         //this is for check value prop against min,max and normalize value prop if its outside of min,max thresholds
         const normalizeValue = [...value];
@@ -161,7 +167,7 @@ export default function DateTimePicker({
                         size='sm'
                         color={colors.primary}
                         onClick={onCalendarChangeHandler}
-                        className='capitalize'
+                        className='mb-2 capitalize'
                     >
                         {isJalali ? 'show gregory calendar' : 'show jalali calendar'}
                     </Button>
@@ -174,6 +180,8 @@ export default function DateTimePicker({
                         mode={mode}
                         value={values.datePicker}
                         onChange={onDatePickerChangeHandler}
+                        startDate={startDate}
+                        onStartDateChange={setStartDate}
                         min={minMax.datePickerMin}
                         max={minMax.datePickerMax}
                         cols={cols}
@@ -182,27 +190,40 @@ export default function DateTimePicker({
                         dayRender={dayRender}
                         colors={colors}
                         classNames={classNames}
+                        className={`${hasTimePicker ? 'mb-2' : ''}`}
                     />
                 )}
-                {hasTimePicker &&
-                    values.timePicker.map((val, i) => (
+                {hasTimePicker && (
+                    <div className='flex items-center gap-8'>
                         <TimePicker
-                            key={i}
                             variants={['hour', 'minute']}
-                            value={val}
-                            onChange={(newVal) => onTimePickerChangeHandler(newVal, i)}
+                            value={values.timePicker[0]}
+                            onChange={(newVal) => onTimePickerChangeHandler(newVal, 0)}
+                            label={mode === 'range' ? 'Start Time' : ''}
                             min={minMax.timePickerMin}
                             max={minMax.timePickerMax}
                             format={formats.timePicker}
                         />
-                    ))}
+                        {mode === 'range' && (
+                            <TimePicker
+                                variants={['hour', 'minute']}
+                                value={values.timePicker[1]}
+                                onChange={(newVal) => onTimePickerChangeHandler(newVal, 1)}
+                                label='End Time'
+                                min={minMax.timePickerMin}
+                                max={minMax.timePickerMax}
+                                format={formats.timePicker}
+                            />
+                        )}
+                    </div>
+                )}
             </div>
             <div className='mt-5 flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between'>
                 <div className='flex items-center gap-2 text-body-md text-slate-700'>
                     {value.map((val, i) => (
                         <Fragment key={i}>
-                            <div>
-                                <p className='rounded-sm border border-slate-300 px-4 py-1'>{val}</p>
+                            <div className='rounded-sm border border-slate-300 px-4 py-1'>
+                                <p>{val}</p>
                             </div>
                             {i < value.length - 1 && <span>-</span>}
                         </Fragment>

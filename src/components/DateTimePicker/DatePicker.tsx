@@ -20,6 +20,8 @@ export default function DatePicker({
     cols = 1,
     value = [],
     onChange,
+    startDate = dayjs(),
+    onStartDateChange,
     min,
     max,
     colors = DEFAULT_COLORS,
@@ -36,8 +38,7 @@ export default function DatePicker({
     className = ''
 }: DatePickerProps) {
     const [step, setStep] = useState<Step>('calendar');
-    const [startD, setStartD] = useState<Dayjs>(dayjs()); //active month on first column
-    const [hoverD, setHoverD] = useState<null | Dayjs>(null);
+    const [hoverDate, setHoverDate] = useState<null | Dayjs>(null);
     const [months, setMonths] = useState<Month[]>([]);
     const parsedColor = useColor(colors.primary || DEFAULT_COLORS.primary);
     const parsedInRangeColor = useColor(colors.inRange || DEFAULT_COLORS.inRange);
@@ -45,39 +46,40 @@ export default function DatePicker({
     const parsedTodayColor = useColor(colors.today || DEFAULT_COLORS.today);
     const parsedTextColor = useColor(colors.text || DEFAULT_COLORS.text);
     const isJalali = calendar === 'jalali';
+    const locale = calendar === 'gregory' ? 'en' : 'fa';
     const dir = calendar === 'gregory' ? 'ltr' : 'rtl';
     const weekdays =
         calendar === 'gregory' ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] : ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
     const dates = useMemo(() => {
         return {
-            todayD: dayjs(undefined, { jalali: isJalali }).calendar(calendar),
-            minD: min && dayjs(min, { jalali: isJalali }).calendar(calendar),
-            maxD: max && dayjs(max, { jalali: isJalali }).calendar(calendar),
-            valStartD: value[0] && dayjs(value[0], { jalali: isJalali }).calendar(calendar),
-            valEndD:
+            todayDate: dayjs(undefined, { jalali: isJalali }).calendar(calendar),
+            minDate: min && dayjs(min, { jalali: isJalali }).calendar(calendar),
+            maxDate: max && dayjs(max, { jalali: isJalali }).calendar(calendar),
+            valStartDate: value[0] && dayjs(value[0], { jalali: isJalali }).calendar(calendar),
+            valEndDate:
                 value[mode === 'range' ? 1 : 0] &&
                 dayjs(value[mode === 'range' ? 1 : 0], { jalali: isJalali }).calendar(calendar)
         };
     }, [mode, value, min, max, isJalali, calendar]);
     const minMax = useMemo(() => {
-        const { minD, maxD } = dates;
-        const startDYear = +startD.format('YYYY');
-        const minYear = minD ? +minD.format('YYYY') : undefined;
-        const maxYear = maxD ? +maxD.format('YYYY') : undefined;
-        const minMonth = minD && minYear === startDYear ? +minD.format('M') : undefined;
-        const maxMonth = maxD && maxYear === startDYear ? +maxD.format('M') : undefined;
+        const { minDate, maxDate } = dates;
+        const startDYear = +startDate.format('YYYY');
+        const minYear = minDate ? +minDate.format('YYYY') : undefined;
+        const maxYear = maxDate ? +maxDate.format('YYYY') : undefined;
+        const minMonth = minDate && minYear === startDYear ? +minDate.format('M') : undefined;
+        const maxMonth = maxDate && maxYear === startDYear ? +maxDate.format('M') : undefined;
         return {
             minYear,
             maxYear,
             minMonth,
             maxMonth
         };
-    }, [dates, startD]);
+    }, [dates, startDate]);
     const onPrevMonth = () => {
-        setStartD((old) => old.subtract(1, 'month'));
+        onStartDateChange((old) => old.subtract(1, 'month'));
     };
     const onNextMonth = () => {
-        setStartD((old) => old.add(1, 'month'));
+        onStartDateChange((old) => old.add(1, 'month'));
     };
     const onDayClick = ({ d, date }: Day) => {
         if (mode === 'single') {
@@ -86,7 +88,7 @@ export default function DatePicker({
             if (value.length === 0 || value.length === 2) {
                 onChange?.([date]); //select new date as start value
             } else {
-                const endIsAfterStart = d.isAfter(dates.valStartD, 'date');
+                const endIsAfterStart = d.isAfter(dates.valStartDate, 'date');
                 if (endIsAfterStart) {
                     onChange?.([value[0], date]); //select new date as end value
                 } else {
@@ -97,12 +99,12 @@ export default function DatePicker({
     };
     const generateMonths = useCallback(() => {
         const newMonths: Month[] = [];
-        const { valStartD, valEndD, minD, maxD, todayD } = dates;
+        const { valStartDate, valEndDate, minDate, maxDate, todayDate } = dates;
         for (let i = 0; i < cols; i++) {
-            const m = startD.add(i, 'month'); //current month
-            const firstDayD = m.startOf('month'); //first day of month
-            const lastDayD = m.endOf('month'); //last day of month
-            const firstMonthDayIndex = firstDayD.day() + (isJalali ? 1 : 0); //first day of month index(weekday) ... for jalali we add 1 to it to sync it
+            const m = startDate.add(i, 'month'); //current month
+            const firstDayDate = m.startOf('month'); //first day of month
+            const lastDayDate = m.endOf('month'); //last day of month
+            const firstMonthDayIndex = firstDayDate.day() + (isJalali ? 1 : 0); //first day of month index(weekday) ... for jalali we add 1 to it to sync it
             const daysInMonth = m.daysInMonth(); //current month days count
             const days: Day[] = []; //days of month
             for (let i = 0; i < 42; i++) {
@@ -110,26 +112,29 @@ export default function DatePicker({
                 const dayState =
                     i < firstMonthDayIndex ? 'prev' : i < firstMonthDayIndex + daysInMonth ? 'current' : 'next'; //each day that we render can be for previous month, current month or next month
                 let d: Dayjs;
-                if (dayState === 'prev') d = firstDayD.subtract(firstMonthDayIndex - i, 'day');
-                else if (dayState === 'next') d = lastDayD.add(i - firstMonthDayIndex - daysInMonth + 1, 'day');
-                else d = firstDayD.add(i - firstMonthDayIndex, 'day');
+                if (dayState === 'prev') d = firstDayDate.subtract(firstMonthDayIndex - i, 'day');
+                else if (dayState === 'next') d = lastDayDate.add(i - firstMonthDayIndex - daysInMonth + 1, 'day');
+                else d = firstDayDate.add(i - firstMonthDayIndex, 'day');
                 const isBetweenValues = !!(
                     mode === 'range' &&
                     value.length === 2 &&
-                    d.isBetween(valStartD, valEndD, 'date', '[]')
+                    d.isBetween(valStartDate, valEndDate, 'date', '[]')
                 );
                 const isBetweenStarAndHover = !!(
                     mode === 'range' &&
                     value.length === 1 &&
-                    hoverD &&
-                    d.isBetween(valStartD, hoverD, 'date', '[]')
+                    hoverDate &&
+                    d.isBetween(valStartDate, hoverDate, 'date', '[]')
                 );
                 const date = d.format(format);
                 const day = +d.format('D');
                 const isSelected = !!value.find((v) => v === date);
                 const isInRange = isBetweenValues || isBetweenStarAndHover;
-                const isToday = date === todayD.format(format);
-                const isDisabled = !!((minD && d.isBefore(minD, 'date')) || (maxD && d.isAfter(maxD, 'date')));
+                const isToday = date === todayDate.format(format);
+                const isDisabled = !!(
+                    (minDate && d.isBefore(minDate, 'date')) ||
+                    (maxDate && d.isAfter(maxDate, 'date'))
+                );
                 const isOutside = dayState === 'prev' || dayState === 'next';
                 days.push({
                     d,
@@ -150,15 +155,14 @@ export default function DatePicker({
             });
         }
         setMonths(newMonths);
-    }, [mode, isJalali, format, cols, value, startD, hoverD, dates]);
+    }, [mode, isJalali, format, cols, value, startDate, hoverDate, dates]);
     useEffect(() => {
+        //generate months whenever any of dependencies of generateMonths function changes(e.g mode,value,startD,...)
         generateMonths();
     }, [generateMonths]);
     useEffect(() => {
         //when we update calendar we should set new value of startD
-        const isJalali = calendar === 'jalali';
-        const locale = calendar === 'gregory' ? 'en' : 'fa';
-        setStartD(
+        onStartDateChange(
             dayjs(value[0] || undefined, { jalali: isJalali })
                 .calendar(calendar)
                 .locale(locale)
@@ -252,13 +256,13 @@ export default function DatePicker({
                                                     isDisabled,
                                                     isOutside
                                                 } = day;
-                                                const { valStartD } = dates;
+                                                const { valStartDate } = dates;
                                                 const isStart = value[0] === date;
                                                 const isEnd = value[1] === date;
                                                 const isStartEndSame = value[0] === value[1];
-                                                const isHover = !!hoverD?.isSame(d, 'date');
-                                                const isHoverBeforeStart = !!hoverD?.isBefore(valStartD, 'date');
-                                                const isHoverAfterStart = !!hoverD?.isAfter(valStartD, 'date');
+                                                const isHover = !!hoverDate?.isSame(d, 'date');
+                                                const isHoverBeforeStart = !!hoverDate?.isBefore(valStartDate, 'date');
+                                                const isHoverAfterStart = !!hoverDate?.isAfter(valStartDate, 'date');
                                                 let bgColor = 'transparent';
                                                 let color = parsedTextColor;
                                                 let radius = '0';
@@ -294,8 +298,8 @@ export default function DatePicker({
                                                     <li
                                                         key={date}
                                                         role={!isDisabled ? 'button' : 'listitem'}
-                                                        onMouseEnter={() => setHoverD(d)}
-                                                        onMouseLeave={() => setHoverD(null)}
+                                                        onMouseEnter={() => setHoverDate(d)}
+                                                        onMouseLeave={() => setHoverDate(null)}
                                                         onClick={() => onDayClick(day)}
                                                         className={`relative z-1 aspect-square overflow-hidden rounded-none bg-transparent ${isOutside || isDisabled ? 'pointer-events-none' : ''} ${isOutside ? 'opacity-0' : isDisabled ? 'opacity-50' : ''}`}
                                                         style={{
@@ -340,11 +344,12 @@ export default function DatePicker({
                         </button>
                     </div>
                     <YearPicker
-                        value={+startD.format('YYYY')}
+                        value={+startDate.format('YYYY')}
                         onChange={(val) => {
-                            setStartD((old) => old.year(val));
+                            onStartDateChange((old) => old.year(val));
                             setStep('calendar');
                         }}
+                        calendar={calendar}
                         offset={50}
                         min={minMax.minYear}
                         max={minMax.maxYear}
@@ -360,11 +365,12 @@ export default function DatePicker({
                         </button>
                     </div>
                     <MonthPicker
-                        value={+startD.format('M')}
+                        value={+startDate.format('M')}
                         onChange={(val) => {
-                            setStartD((old) => old.month(val - 1)); //dayjs month is zero-index but MonthPicker expect month to be [1,12]
+                            onStartDateChange((old) => old.month(val - 1)); //dayjs month is zero-index but MonthPicker expect month to be [1,12]
                             setStep('calendar');
                         }}
+                        calendar={calendar}
                         min={minMax.minMonth}
                         max={minMax.maxMonth}
                         color={colors.primary}

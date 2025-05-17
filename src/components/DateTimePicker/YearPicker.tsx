@@ -9,6 +9,7 @@ import type { Year, YearPickerProps } from './types';
 export default function YearPicker({
     value,
     onChange,
+    calendar = 'gregory',
     offset = 50,
     min,
     max,
@@ -17,12 +18,11 @@ export default function YearPicker({
 }: YearPickerProps) {
     const activeYear = useRef<HTMLLIElement>(null!);
     const [years, setYears] = useState<Year[]>([]);
-    const currentYear = dayjs().year();
     const generateYears = useCallback(() => {
         const newYears: Year[] = [];
         for (let i = -offset; i <= offset; i++) {
             //generate years
-            const y = currentYear + i;
+            const y = dayjs().calendar(calendar).year() + i;
             newYears.push({
                 value: y,
                 isSelected: y === value,
@@ -30,7 +30,7 @@ export default function YearPicker({
             });
         }
         setYears(newYears);
-    }, [value, currentYear, offset, min, max]);
+    }, [value, calendar, offset, min, max]);
     useEffect(() => {
         //generate list of year
         generateYears();

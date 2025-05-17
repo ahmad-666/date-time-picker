@@ -19,7 +19,9 @@ const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInp
             else finalValue = newVal;
             onChange?.(finalValue || 0);
         },
-        [min, max, onChange]
+        //! don't add onChange to dependencies array because it will cause infinite re-render
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [min, max]
     );
     const add = () => {
         //click on increment button
@@ -61,11 +63,11 @@ const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInp
                 size='xs'
                 disabled={isMax}
                 onClick={add}
-                className='!p-1.5'
+                className='!p-0.5'
             >
                 <Icon icon='mdi:chevron-up' size='md' color={DEFAULT_COLORS.text} />
             </Button>
-            <div className='mb-5 mt-4'>
+            <div className='mb-4 mt-3'>
                 <input
                     type='text'
                     value={`${value}`.padStart(2, '0')}
@@ -83,7 +85,7 @@ const Input = ({ value, onChange, title, min = 0, max, className = '' }: TimeInp
                 size='xs'
                 disabled={isMin}
                 onClick={subtract}
-                className='!p-1.5'
+                className='!p-0.5'
             >
                 <Icon icon='mdi:chevron-down' size='md' color={DEFAULT_COLORS.text} />
             </Button>
@@ -95,6 +97,7 @@ export default function TimePicker({
     variants = ['hour', 'minute'],
     value,
     onChange,
+    label,
     format = 'HH:mm',
     min,
     max,
@@ -130,34 +133,37 @@ export default function TimePicker({
     };
 
     return (
-        <div className={`flex flex-wrap gap-8 tablet:gap-16 ${className}`}>
-            {showHour && (
-                <Input
-                    value={valueD.hour()}
-                    onChange={(newVal) => onTimeChange('hour', newVal)}
-                    title='Hour'
-                    min={minMax.minHour}
-                    max={minMax.maxHour}
-                />
-            )}
-            {showMinute && (
-                <Input
-                    value={valueD.minute()}
-                    onChange={(newVal) => onTimeChange('minute', newVal)}
-                    title='Minute'
-                    min={minMax.minMinute}
-                    max={minMax.maxMinute}
-                />
-            )}
-            {showSecond && (
-                <Input
-                    value={valueD.second()}
-                    onChange={(newVal) => onTimeChange('second', newVal)}
-                    title='Second'
-                    min={minMax.minSecond}
-                    max={minMax.maxSecond}
-                />
-            )}
+        <div className={`${className}`}>
+            {!!label && <p className='mb-2 text-body-md font-semibold text-slate-700'>{label}</p>}
+            <div className='flex flex-wrap gap-4 tablet:gap-8'>
+                {showHour && (
+                    <Input
+                        value={valueD.hour()}
+                        onChange={(newVal) => onTimeChange('hour', newVal)}
+                        title='Hour'
+                        min={minMax.minHour}
+                        max={minMax.maxHour}
+                    />
+                )}
+                {showMinute && (
+                    <Input
+                        value={valueD.minute()}
+                        onChange={(newVal) => onTimeChange('minute', newVal)}
+                        title='Minute'
+                        min={minMax.minMinute}
+                        max={minMax.maxMinute}
+                    />
+                )}
+                {showSecond && (
+                    <Input
+                        value={valueD.second()}
+                        onChange={(newVal) => onTimeChange('second', newVal)}
+                        title='Second'
+                        min={minMax.minSecond}
+                        max={minMax.maxSecond}
+                    />
+                )}
+            </div>
         </div>
     );
 }

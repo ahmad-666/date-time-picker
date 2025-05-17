@@ -1,5 +1,5 @@
+import { type SetStateAction, type Dispatch, type ReactNode } from 'react';
 import { type Dayjs } from 'dayjs';
-import { type ReactNode } from 'react';
 
 export type Type = 'date' | 'time' | 'datetime';
 export type Mode = 'single' | 'range';
@@ -73,6 +73,8 @@ export type YearPickerProps = {
     value: number;
     /** 2-way data binding for value prop */
     onChange?: (newValue: number) => void;
+    /** gregory or jalali years */
+    calendar?: Calendar;
     /** how many years before,after current year we should render */
     offset?: number;
     /** min accepted year e.g 2019 */
@@ -89,6 +91,8 @@ export type MonthPickerProps = {
     value: number;
     /** 2-way data binding for value prop */
     onChange?: (newValue: number) => void;
+    /** gregory or jalali months */
+    calendar?: Calendar;
     /** min accepted month e.g 1 */
     min?: number;
     /** max accepted month e.g 12 */
@@ -111,6 +115,10 @@ export type DatePickerProps = {
     value: string[];
     /** for 2-way data binding of value prop */
     onChange?: (newValue: string[]) => void;
+    /** dayjs date instance to specify start date of date-picker(active month on first column) */
+    startDate: Dayjs;
+    /** for 2-way data binding of startDate prop */
+    onStartDateChange: Dispatch<SetStateAction<Dayjs>>;
     /** min accepted date e.g '2020-01-01' ... needs to be in proper calendar-type/format */
     min?: string;
     /** max accepted date e.g '2022-12-30' ... needs to be in proper calendar-type/format */
@@ -147,6 +155,8 @@ export type TimePickerProps = {
     value: string;
     /** for 2-way data binding of value prop */
     onChange?: (newVal: string) => void;
+    /** act as title of time-picker */
+    label?: string;
     /** format of value e.g HH:mm */
     format?: string;
     /** min accepted time e.g '01:10' ... needs to be in proper format */
@@ -156,7 +166,7 @@ export type TimePickerProps = {
     /** css className of container */
     className?: string;
 };
-export type DateTimePickerProps = DatePickerProps & {
+export type DateTimePickerProps = Omit<DatePickerProps, 'startDate' | 'onStartDateChange'> & {
     /** specify type of picker('date','time','datetime') */
     type?: Type;
     /** show toggle button for change calendar type */
