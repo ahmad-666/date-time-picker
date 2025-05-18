@@ -5,7 +5,7 @@ import Image from 'next/image';
 import dayjs from '@/libs/dayjs';
 import envs from '@/utils/envs';
 
-import DatePicker from '@/components/DateTimePicker';
+import DateTimePicker from '@/components/DateTimePicker';
 import type { Calendar } from '@/components/DateTimePicker/types';
 
 export default function Page() {
@@ -21,7 +21,7 @@ export default function Page() {
     return (
         <div className='mx-auto mt-20 w-4/5'>
             <h1>{JSON.stringify(dates)}</h1>
-            <DatePicker
+            <DateTimePicker
                 type='datetime'
                 mode='single'
                 value={dates}

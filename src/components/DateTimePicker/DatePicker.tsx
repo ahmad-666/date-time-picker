@@ -167,8 +167,9 @@ export default function DatePicker({
                 .calendar(calendar)
                 .locale(locale)
         );
+        //! we don't add 'value' as dependency because it will always jump on value[0] month
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [calendar]); //! we don't add 'value' as dependency because it will always jump on value[0] month
+    }, [calendar]);
 
     return (
         <div dir={dir} className={`${className}`}>

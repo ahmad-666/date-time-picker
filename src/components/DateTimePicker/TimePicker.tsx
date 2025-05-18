@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, type ChangeEvent, type KeyboardEvent, type FocusEvent } from 'react';
+import { type ChangeEvent, type KeyboardEvent, type FocusEvent } from 'react';
 import { type Dayjs } from 'dayjs';
 import dayjs from '@/libs/dayjs';
 import Button from '@/components/Button';
@@ -11,18 +11,13 @@ import type { TimeVariant, TimeInputProps, TimePickerProps } from './types';
 const Input = ({ value, onChange, title, min = 0, max, disabled = false, className = '' }: TimeInputProps) => {
     const isMin = !!(typeof min === 'number' && value <= min);
     const isMax = !!(typeof max === 'number' && value >= max);
-    const updateValue = useCallback(
-        (newVal: number) => {
-            let finalValue: number;
-            if (typeof min === 'number' && newVal < min) finalValue = min;
-            else if (typeof max === 'number' && newVal > max) finalValue = max;
-            else finalValue = newVal;
-            onChange?.(finalValue || 0);
-        },
-        //! don't add onChange to dependencies array because it will cause infinite re-render
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [min, max]
-    );
+    const updateValue = (newVal: number) => {
+        let finalValue: number;
+        if (typeof min === 'number' && newVal < min) finalValue = min;
+        else if (typeof max === 'number' && newVal > max) finalValue = max;
+        else finalValue = newVal;
+        onChange?.(finalValue || 0);
+    };
     const add = () => {
         //click on increment button
         updateValue(value + 1);
@@ -51,9 +46,11 @@ const Input = ({ value, onChange, title, min = 0, max, disabled = false, classNa
         const newVal = +e.target.value;
         updateValue(newVal);
     };
-    useEffect(() => {
-        updateValue(value);
-    }, [value, updateValue]);
+    // useEffect(() => {
+    //     updateValue(value);
+    //     //! don't add updateValue to dependencies array because it will cause infinite re-render
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [value]);
 
     return (
         <div className={`flex flex-col items-center ${disabled ? 'pointer-events-none opacity-50' : ''} ${className}`}>
