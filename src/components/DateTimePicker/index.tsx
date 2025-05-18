@@ -75,39 +75,40 @@ export default function DateTimePicker({
             timePicker: timeFormat.replace(/^\W*/g, '').replace(/\W*$/g, '')
         };
     }, [format]);
+    const dayjsConfig = useMemo(() => {
+        // for specify 2nd arg of dayjs
+        // for empty value we use {jalali:isJalali} --> dayjs(undefined,{jalali:true})
+        // for time we use time formats like HH:mm --> dayjs('10:45','HH:mm')
+        // for date we use {jalali:isJalali} --> dayjs('2020-10-05',{jalali:true})
+        // for datetime we use {jalali:isJalali} --> dayjs('2020-10-05 10:45',{jalali:true})
+        return hasDatePicker ? { jalali: isJalali } : formats.timePicker;
+    }, [hasDatePicker, isJalali, formats.timePicker]);
     const values = useMemo(() => {
         return {
             start: value[0],
             end: value[mode === 'single' ? 0 : 1],
-            datePicker: value.map((val) =>
-                dayjs(val, { jalali: isJalali }).calendar(calendar).format(formats.datePicker)
-            ),
-            timePicker: value.map((val) => dayjs(val).format(formats.timePicker))
+            datePicker: value.map((val) => dayjs(val, dayjsConfig).calendar(calendar).format(formats.datePicker)),
+            timePicker: value.map((val) => dayjs(val, dayjsConfig).format(formats.timePicker))
         };
-    }, [calendar, mode, isJalali, value, formats]);
+    }, [value, mode, calendar, formats, dayjsConfig]);
     const minMax = useMemo(() => {
-        const reachMin = dayjs(values.start).isSame(dayjs(min));
-        const reachMax = dayjs(values.end).isSame(dayjs(max));
+        const reachMin = dayjs(values.start, dayjsConfig).isSame(dayjs(min));
+        const reachMax = dayjs(values.end, dayjsConfig).isSame(dayjs(max));
         return {
             reachMin,
             reachMax,
-            datePickerMin: min
-                ? dayjs(min, { jalali: isJalali }).calendar(calendar).format(formats.datePicker)
-                : undefined,
-            datePickerMax: max
-                ? dayjs(max, { jalali: isJalali }).calendar(calendar).format(formats.datePicker)
-                : undefined,
-            timePickerMin: min && reachMin ? dayjs(min).format(formats.timePicker) : undefined,
-            timePickerMax: max && reachMax ? dayjs(max).format(formats.timePicker) : undefined
+            datePickerMin: min ? dayjs(min, dayjsConfig).calendar(calendar).format(formats.datePicker) : undefined,
+            datePickerMax: max ? dayjs(max, dayjsConfig).calendar(calendar).format(formats.datePicker) : undefined,
+            timePickerMin:
+                min && (type === 'time' || reachMin) ? dayjs(min, dayjsConfig).format(formats.timePicker) : undefined,
+            timePickerMax:
+                max && (type === 'time' || reachMax) ? dayjs(max, dayjsConfig).format(formats.timePicker) : undefined
         };
-    }, [calendar, isJalali, values, formats, min, max]);
+    }, [values, formats, type, calendar, dayjsConfig, min, max]);
+    // console.log(values, formats, minMax);
     const onCalendarChangeHandler = () => {
         const newCalendar = calendar === 'gregory' ? 'jalali' : 'gregory';
-        const newValue = value.map((val) =>
-            dayjs(val, { jalali: calendar === 'jalali' })
-                .calendar(newCalendar)
-                .format(format)
-        );
+        const newValue = value.map((val) => dayjs(val, dayjsConfig).calendar(newCalendar).format(format));
         onCalendarChange?.(newCalendar);
         onChange?.(newValue);
     };
@@ -121,8 +122,8 @@ export default function DateTimePicker({
         //this is for check value prop against min,max and normalize value prop if its outside of min,max thresholds
         const normalizeValue = [...value];
         normalizeValue.forEach((val, i) => {
-            const passedMin = dayjs(val).isBefore(dayjs(min));
-            const passedMax = dayjs(val).isAfter(dayjs(max));
+            const passedMin = dayjs(val, dayjsConfig).isBefore(dayjs(min));
+            const passedMax = dayjs(val, dayjsConfig).isAfter(dayjs(max));
             if (min && passedMin) normalizeValue[i] = min;
             else if (max && passedMax) normalizeValue[i] = max;
         });
@@ -134,7 +135,7 @@ export default function DateTimePicker({
                 const year = dayjs(v).get('year');
                 const month = dayjs(v).get('month');
                 const day = dayjs(v).get('date');
-                return dayjs(value[i], { jalali: isJalali })
+                return dayjs(value[i], !value[i] ? { jalali: isJalali } : dayjsConfig)
                     .calendar(calendar)
                     .set('year', +year)
                     .set('month', +month)
@@ -145,13 +146,14 @@ export default function DateTimePicker({
         onChange?.(checkMinMax(newVal));
     };
     const onTimePickerChangeHandler = (val: string, i: number) => {
-        //we only update time if we already have a value like date,datetime
-        if (value[i]) {
+        //for type==='time' we directly update time but for type==='date'||type==='datetime' we only update time if we already have a value like date,datetime
+        const shouldUpdateTime = type === 'time' || !!(hasDatePicker && value[i]);
+        if (shouldUpdateTime) {
             const valueCopy = [...value];
             const oldValue = valueCopy[i];
             const hour = dayjs(val, formats.timePicker).get('hour');
             const minute = dayjs(val, formats.timePicker).get('minute');
-            const newValue = dayjs(oldValue, { jalali: isJalali })
+            const newValue = dayjs(oldValue, !oldValue ? { jalali: isJalali } : dayjsConfig)
                 .calendar(calendar)
                 .set('hour', hour)
                 .set('minute', minute)
@@ -163,7 +165,7 @@ export default function DateTimePicker({
 
     return (
         <div className={`${className}`}>
-            {showCalendarBtn && (
+            {showCalendarBtn && hasDatePicker && (
                 <div className='mb-5 flex items-center gap-2'>
                     <Button
                         variant='filled'
@@ -197,6 +199,7 @@ export default function DateTimePicker({
                     />
                 )}
                 {hasTimePicker && (
+                    // timepicker should be disabled if also have date and don't select date yet
                     <div className='flex items-center gap-8'>
                         <TimePicker
                             variants={['hour', 'minute']}
@@ -204,9 +207,9 @@ export default function DateTimePicker({
                             onChange={(newVal) => onTimePickerChangeHandler(newVal, 0)}
                             label={mode === 'range' ? 'Start Time' : ''}
                             min={minMax.timePickerMin}
-                            max={minMax.timePickerMax}
+                            max={mode === 'single' ? minMax.timePickerMax : undefined}
                             format={formats.timePicker}
-                            disabled={!value[0]}
+                            disabled={hasDatePicker && !value[0]}
                         />
                         {mode === 'range' && (
                             <TimePicker
@@ -214,10 +217,10 @@ export default function DateTimePicker({
                                 value={values.timePicker[1]}
                                 onChange={(newVal) => onTimePickerChangeHandler(newVal, 1)}
                                 label='End Time'
-                                min={minMax.timePickerMin}
+                                min={undefined}
                                 max={minMax.timePickerMax}
                                 format={formats.timePicker}
-                                disabled={!value[1]}
+                                disabled={hasDatePicker && !value[1]}
                             />
                         )}
                     </div>
@@ -235,12 +238,12 @@ export default function DateTimePicker({
                     ))}
                 </div>
                 <div className='flex items-center gap-2'>
-                    {showClearBtn && (
+                    {showClearBtn && hasDatePicker && (
                         <Button variant='outlined' size='sm' color={colors.error} onClick={onClearHandler}>
                             Clear
                         </Button>
                     )}
-                    {showTodayBtn && (
+                    {showTodayBtn && hasDatePicker && (
                         <Button variant='filled' size='sm' color={colors.today} onClick={onTodayHandler}>
                             Today
                         </Button>
