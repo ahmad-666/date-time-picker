@@ -34,7 +34,8 @@ export default function DateTimePicker({
         today: '', //css className of today date in days
         disabled: '' //css className of disabled dates in days
     },
-    className = ''
+    className = '',
+    style
 }: DateTimePickerProps) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().calendar(calendar));
     const hasDatePicker = type === 'date' || type === 'datetime';
@@ -241,7 +242,7 @@ export default function DateTimePicker({
     }, [value, onChange, type, mode, formats.timePicker, checkMinMax]);
 
     return (
-        <div className={`${className}`}>
+        <div className={`${className}`} style={{ ...style }}>
             {showCalendarBtn && hasDatePicker && (
                 <div className='mb-5 flex items-center gap-2'>
                     <Button
@@ -277,7 +278,7 @@ export default function DateTimePicker({
                 )}
                 {hasTimePicker && (
                     // timepicker should be disabled if also have date and don't select date yet
-                    <div dir={dir} className='flex flex-wrap items-center justify-center gap-12'>
+                    <div dir={dir} className='flex flex-wrap items-center justify-center gap-10'>
                         <TimePicker
                             variants={['hour', 'minute']}
                             value={values.timePicker[0]}
@@ -345,13 +346,17 @@ export default function DateTimePicker({
 //     value={dates} onChange={(newVal) => {setDates(newVal);}}
 //     format={format} min='2025-04-10' max='2025-06-25' cols={1} size={50}
 // />
-//* #3: date-time range example with min,max and update calendar prop
+//* #3: date-time range example with min,max and update calendar prop with responsive sizing:
 // const format = 'YYYY-MM-DD HH:mm';
+// const isMobile = useMediaQuery('(width < 750px)');
+// const cols = isMobile ? 1 : 2;
+// const size = isMobile ? 40 : 50;
+// const offset = isMobile ? 0 : 120;
 // const [dates, setDates] = useState<string[]>(['2025-04-12 10:45', '2025-06-14 05:45']);
 // const [calendar, setCalendar] = useState<Calendar>('gregory');
 // const [minMax, setMinMax] = useState({min: '2025-04-10 10:15',max: '2025-06-25 05:45'});
 // <DateTimePicker type='datetime' mode='range' value={dates} onChange={(newVal) => {setDates(newVal);}}
-//     format={format} min={minMax.min} max={minMax.max} cols={2} size={50} calendar={calendar}
+//     format={format} min={minMax.min} max={minMax.max} calendar={calendar}
 //     onCalendarChange={(newCalendar) => {
 //         setCalendar(newCalendar);
 //         setMinMax((old) => ({
@@ -359,4 +364,5 @@ export default function DateTimePicker({
 //             max: dayjs(old.max, { jalali: calendar === 'jalali' }).calendar(newCalendar).format(format)
 //         }));
 //     }}
+//    cols={cols} size={size} style={{width: cols * size * 7 + offset}}
 // />

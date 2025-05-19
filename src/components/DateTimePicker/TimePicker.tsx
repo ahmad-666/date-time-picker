@@ -127,7 +127,7 @@ export default function TimePicker({
 
     return (
         <div className={`${className}`}>
-            {!!label && <p className='mb-2 text-body-md font-semibold text-slate-700'>{label}</p>}
+            {!!label && <p className='mb-2 text-center text-body-md font-semibold text-slate-700'>{label}</p>}
             <div dir='ltr' className='flex gap-4 tablet:gap-8'>
                 {showHour && (
                     <Input

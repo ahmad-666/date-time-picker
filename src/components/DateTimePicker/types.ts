@@ -1,4 +1,4 @@
-import { type SetStateAction, type Dispatch, type ReactNode } from 'react';
+import { type SetStateAction, type Dispatch, type CSSProperties, type ReactNode } from 'react';
 import { type Dayjs } from 'dayjs';
 
 export type Type = 'date' | 'time' | 'datetime';
@@ -133,6 +133,8 @@ export type DatePickerProps = {
     classNames?: ClassNames;
     /** css className of container */
     className?: string;
+    /** css inline style of container */
+    style?: CSSProperties;
 };
 export type TimeInputProps = {
     /** value of time input  */

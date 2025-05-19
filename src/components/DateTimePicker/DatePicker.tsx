@@ -35,7 +35,8 @@ export default function DatePicker({
         today: '',
         disabled: ''
     },
-    className = ''
+    className = '',
+    style
 }: DatePickerProps) {
     const [step, setStep] = useState<Step>('calendar');
     const [hoverDate, setHoverDate] = useState<null | Dayjs>(null);
@@ -172,10 +173,10 @@ export default function DatePicker({
     }, [calendar]);
 
     return (
-        <div dir={dir} className={`${className}`}>
+        <div dir={dir} className={`${className}`} style={{ ...style }}>
             {step === 'calendar' && (
                 <div
-                    className={`divide flex divide-x divide-solid divide-slate-200 ${dir === 'rtl' ? 'divide-x-reverse' : ''}`}
+                    className={`divide flex justify-center divide-x divide-solid divide-slate-200 ${dir === 'rtl' ? 'divide-x-reverse' : ''}`}
                 >
                     {months.map((month, i) => {
                         const isFirstMonth = i === 0;
