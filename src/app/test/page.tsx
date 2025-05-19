@@ -10,19 +10,19 @@ import type { Calendar } from '@/components/DateTimePicker/types';
 
 export default function Page() {
     if (envs.appType !== 'test') throw new Error('test page is only available on DEV mode !!!');
-    const format = 'YYYY-MM-DD HH:mm';
+    const format = 'HH:mm';
     const [dates, setDates] = useState<string[]>([]);
     const [calendar, setCalendar] = useState<Calendar>('gregory');
     const [minMax, setMinMax] = useState({
-        min: '2025-04-10 10:15',
-        max: '2025-06-25 05:45'
+        min: '10:15',
+        max: '15:45'
     });
 
     return (
         <div className='mx-auto mt-20 w-4/5'>
             <h1>{JSON.stringify(dates)}</h1>
             <DateTimePicker
-                type='datetime'
+                type='time'
                 mode='range'
                 value={dates}
                 onChange={(newVal) => {

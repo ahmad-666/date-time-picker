@@ -46,11 +46,6 @@ const Input = ({ value, onChange, title, min = 0, max, disabled = false, classNa
         const newVal = +e.target.value;
         updateValue(newVal);
     };
-    // useEffect(() => {
-    //     updateValue(value);
-    //     //! don't add updateValue to dependencies array because it will cause infinite re-render
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [value]);
 
     return (
         <div className={`flex flex-col items-center ${disabled ? 'pointer-events-none opacity-50' : ''} ${className}`}>
@@ -133,7 +128,7 @@ export default function TimePicker({
     return (
         <div className={`${className}`}>
             {!!label && <p className='mb-2 text-body-md font-semibold text-slate-700'>{label}</p>}
-            <div className='flex gap-4 tablet:gap-8'>
+            <div dir='ltr' className='flex gap-4 tablet:gap-8'>
                 {showHour && (
                     <Input
                         value={valueD.hour()}

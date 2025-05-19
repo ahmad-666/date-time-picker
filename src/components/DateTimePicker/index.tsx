@@ -41,7 +41,7 @@ export default function DateTimePicker({
     const hasTimePicker = type === 'time' || type === 'datetime';
     const isJalali = calendar === 'jalali';
     const locale = calendar === 'gregory' ? 'en' : 'fa';
-    // const dir = calendar === 'gregory' ? 'ltr' : 'rtl';
+    const dir = calendar === 'gregory' ? 'ltr' : 'rtl';
     const formats = useMemo(() => {
         let dateFormat = '';
         let timeFormat = '';
@@ -77,10 +77,10 @@ export default function DateTimePicker({
     }, [format]);
     const dayjsConfig = useMemo(() => {
         // for specify 2nd arg of dayjs
-        // for empty value we use {jalali:isJalali} --> dayjs(undefined,{jalali:true})
-        // for time we use time formats like HH:mm --> dayjs('10:45','HH:mm')
-        // for date we use {jalali:isJalali} --> dayjs('2020-10-05',{jalali:true})
-        // for datetime we use {jalali:isJalali} --> dayjs('2020-10-05 10:45',{jalali:true})
+        // for parse empty value we use {jalali:isJalali} --> dayjs(undefined,{jalali:true})
+        // for parse time we use time formats like HH:mm --> dayjs('10:45','HH:mm')
+        // for parse date we use {jalali:isJalali} --> dayjs('2020-10-05',{jalali:true})
+        // for parse datetime we use {jalali:isJalali} --> dayjs('2020-10-05 10:45',{jalali:true})
         return hasDatePicker ? { jalali: isJalali } : formats.timePicker;
     }, [hasDatePicker, isJalali, formats.timePicker]);
     const values = useMemo(() => {
@@ -91,27 +91,35 @@ export default function DateTimePicker({
             timePicker: value.map((val) => dayjs(val, dayjsConfig).format(formats.timePicker))
         };
     }, [value, mode, calendar, formats, dayjsConfig]);
+    const dates = useMemo(() => {
+        return {
+            start: dayjs(values.start, dayjsConfig),
+            end: dayjs(values.end, dayjsConfig),
+            min: dayjs(min, dayjsConfig),
+            max: dayjs(max, dayjsConfig)
+        };
+    }, [values, min, max, dayjsConfig]);
     const minMax = useMemo(() => {
-        //compare start,end dates to min,max(only compare dates without considering time)
-        const reachMinDate = dayjs(values.start, dayjsConfig).isSame(dayjs(min, dayjsConfig), 'day');
-        const reachMaxDate = dayjs(values.end, dayjsConfig).isSame(dayjs(max, dayjsConfig), 'day');
-        const startEndSame = dayjs(values.start, dayjsConfig).isSame(dayjs(values.end, dayjsConfig), 'day');
-        const datePickerMin =
-            min && hasDatePicker ? dayjs(min, dayjsConfig).calendar(calendar).format(formats.datePicker) : undefined;
-        const datePickerMax =
-            max && hasDatePicker ? dayjs(max, dayjsConfig).calendar(calendar).format(formats.datePicker) : undefined;
+        //for type==='datetime' we need to apply min,max to time-picker only if we reach min-date,max-date
+        const { start: startD, end: endD, min: minD, max: maxD } = dates;
+        const startReachMinDate = startD.isSame(minD, 'day');
+        const startReachMaxDate = startD.isSame(maxD, 'day');
+        const endReachMinDate = endD.isSame(minD, 'day');
+        const endReachMaxDate = endD.isSame(maxD, 'day');
+        const datePickerMin = min && hasDatePicker ? minD.calendar(calendar).format(formats.datePicker) : undefined;
+        const datePickerMax = max && hasDatePicker ? maxD.calendar(calendar).format(formats.datePicker) : undefined;
         const timePickerStartMin =
-            min && (type === 'time' || reachMinDate) ? dayjs(min, dayjsConfig).format(formats.timePicker) : undefined;
+            min && hasTimePicker && (type === 'time' || startReachMinDate)
+                ? minD.format(formats.timePicker)
+                : undefined;
         const timePickerStartMax =
-            max && (type === 'time' || (reachMaxDate && startEndSame))
-                ? dayjs(max, dayjsConfig).format(formats.timePicker)
+            max && hasTimePicker && (type === 'time' || startReachMaxDate)
+                ? maxD.format(formats.timePicker)
                 : undefined;
         const timePickerEndMin =
-            min && (type === 'time' || (reachMinDate && startEndSame))
-                ? dayjs(min, dayjsConfig).format(formats.timePicker)
-                : undefined;
+            min && hasTimePicker && (type === 'time' || endReachMinDate) ? minD.format(formats.timePicker) : undefined;
         const timePickerEndMax =
-            max && (type === 'time' || reachMaxDate) ? dayjs(max, dayjsConfig).format(formats.timePicker) : undefined;
+            max && hasTimePicker && (type === 'time' || endReachMaxDate) ? maxD.format(formats.timePicker) : undefined;
         return {
             datePickerMin,
             datePickerMax,
@@ -120,7 +128,7 @@ export default function DateTimePicker({
             timePickerEndMin,
             timePickerEndMax
         };
-    }, [values, formats, type, hasDatePicker, calendar, dayjsConfig, min, max]);
+    }, [formats, dates, type, hasDatePicker, hasTimePicker, calendar, min, max]);
     const onCalendarChangeHandler = () => {
         const newCalendar = calendar === 'gregory' ? 'jalali' : 'gregory';
         const newValue = value.map((val) => dayjs(val, dayjsConfig).calendar(newCalendar).format(format));
@@ -139,21 +147,23 @@ export default function DateTimePicker({
             //? 2nd for mode==='range' check start is lower than end and end is greater than start
             const valueCopy = [...value];
             let start = valueCopy[0];
-            let end = valueCopy[mode === 'single' ? 0 : 1];
+            let end = valueCopy[1];
+            const { min: minD, max: maxD } = dates;
             let startBelowMin = false;
             let endPassedMax = false;
             let startPassedEnd = false;
             let endBelowStart = false;
             if (mode === 'single') {
-                startBelowMin = min && start ? dayjs(start, dayjsConfig).isBefore(dayjs(min, dayjsConfig)) : false;
-                endPassedMax = max && start ? dayjs(start, dayjsConfig).isAfter(dayjs(max, dayjsConfig)) : false;
+                //in single mode we don't have any end so we work with start only
+                startBelowMin = min && start ? dayjs(start, dayjsConfig).isBefore(minD) : false;
+                endPassedMax = max && start ? dayjs(start, dayjsConfig).isAfter(maxD) : false;
                 if (startBelowMin) start = min!;
-                else if (endPassedMax) start = max!;
+                if (endPassedMax) start = max!;
             } else {
-                startBelowMin = min && start ? dayjs(start, dayjsConfig).isBefore(dayjs(min, dayjsConfig)) : false;
-                endPassedMax = max && end ? dayjs(end, dayjsConfig).isAfter(dayjs(max, dayjsConfig)) : false;
+                startBelowMin = min && start ? dayjs(start, dayjsConfig).isBefore(minD) : false;
+                endPassedMax = max && end ? dayjs(end, dayjsConfig).isAfter(maxD) : false;
                 if (startBelowMin) start = min!;
-                else if (endPassedMax) end = max!;
+                if (endPassedMax) end = max!;
                 startPassedEnd =
                     mode === 'range' && start && end
                         ? dayjs(start, dayjsConfig).isAfter(dayjs(end, dayjsConfig))
@@ -163,12 +173,12 @@ export default function DateTimePicker({
                         ? dayjs(end, dayjsConfig).isBefore(dayjs(start, dayjsConfig))
                         : false;
                 if (startPassedEnd) start = end!;
-                else if (endBelowStart) end = start!;
+                if (endBelowStart) end = start!;
             }
             //return final value
             return (mode === 'single' ? [start] : [start, end]).filter((v) => v);
         },
-        [mode, dayjsConfig, min, max]
+        [mode, dates, dayjsConfig, min, max]
     );
     const onDatePickerChangeHandler = useCallback(
         (newValue: string[]) => {
@@ -217,13 +227,18 @@ export default function DateTimePicker({
         // for type="time" we update value prop with current time if its empty
         if (type === 'time') {
             const initValue: string[] = [];
-            if (!value[0]) initValue[0] = dayjs().format(formats.timePicker);
-            if (mode === 'range' && !value[1]) initValue[1] = dayjs().format(formats.timePicker);
-            onChange?.(checkMinMax(initValue));
+            let shouldUpdate = false;
+            if (!value[0]) {
+                initValue[0] = dayjs().format(formats.timePicker);
+                shouldUpdate = true;
+            }
+            if (mode === 'range' && !value[1]) {
+                initValue[1] = dayjs().format(formats.timePicker);
+                shouldUpdate = true;
+            }
+            if (shouldUpdate) onChange?.(checkMinMax(initValue));
         }
-        //! we don't add value,onChange to prevent infinite loop
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [type, formats.timePicker, checkMinMax]);
+    }, [value, onChange, type, mode, formats.timePicker, checkMinMax]);
 
     return (
         <div className={`${className}`}>
@@ -262,7 +277,7 @@ export default function DateTimePicker({
                 )}
                 {hasTimePicker && (
                     // timepicker should be disabled if also have date and don't select date yet
-                    <div className='flex flex-wrap items-center gap-12'>
+                    <div dir={dir} className='flex flex-wrap items-center justify-center gap-12'>
                         <TimePicker
                             variants={['hour', 'minute']}
                             value={values.timePicker[0]}
@@ -271,7 +286,7 @@ export default function DateTimePicker({
                             min={minMax.timePickerStartMin}
                             max={minMax.timePickerStartMax}
                             format={formats.timePicker}
-                            disabled={hasDatePicker && !value[0]}
+                            disabled={hasDatePicker && !values.start}
                         />
                         {mode === 'range' && (
                             <TimePicker
@@ -282,7 +297,7 @@ export default function DateTimePicker({
                                 min={minMax.timePickerEndMin}
                                 max={minMax.timePickerEndMax}
                                 format={formats.timePicker}
-                                disabled={hasDatePicker && !value[1]}
+                                disabled={hasDatePicker && !values.end}
                             />
                         )}
                     </div>
@@ -292,7 +307,7 @@ export default function DateTimePicker({
                 <div className='flex items-center gap-2 text-body-md text-slate-700'>
                     {value.map((val, i) => (
                         <Fragment key={i}>
-                            <div className='rounded-sm border border-slate-300 px-4 py-1'>
+                            <div className='rounded-xs border border-slate-300 px-4 py-1'>
                                 <p>{val}</p>
                             </div>
                             {i < value.length - 1 && <span>-</span>}
@@ -315,3 +330,33 @@ export default function DateTimePicker({
         </div>
     );
 }
+//? Usage:
+//* #1: time range example without min,max:
+// const format = 'HH:mm';
+// const [dates, setDates] = useState<string[]>([]);
+// <DateTimePicker type='time' mode='range'
+//     value={dates} onChange={(newVal) => {setDates(newVal);}}
+//     showCalendarBtn={false} format={format}
+// />
+//* #2: date single example with min,max and static gregory calendar:
+// const format = 'YYYY-MM-DD';
+// const [dates, setDates] = useState<string[]>([]);
+// <DateTimePicker type='date' mode='single' calendar='gregory' showCalendarBtn={false}
+//     value={dates} onChange={(newVal) => {setDates(newVal);}}
+//     format={format} min='2025-04-10' max='2025-06-25' cols={1} size={50}
+// />
+//* #3: date-time range example with min,max and update calendar prop
+// const format = 'YYYY-MM-DD HH:mm';
+// const [dates, setDates] = useState<string[]>(['2025-04-12 10:45', '2025-06-14 05:45']);
+// const [calendar, setCalendar] = useState<Calendar>('gregory');
+// const [minMax, setMinMax] = useState({min: '2025-04-10 10:15',max: '2025-06-25 05:45'});
+// <DateTimePicker type='datetime' mode='range' value={dates} onChange={(newVal) => {setDates(newVal);}}
+//     format={format} min={minMax.min} max={minMax.max} cols={2} size={50} calendar={calendar}
+//     onCalendarChange={(newCalendar) => {
+//         setCalendar(newCalendar);
+//         setMinMax((old) => ({
+//             min: dayjs(old.min, { jalali: calendar === 'jalali' }).calendar(newCalendar).format(format),
+//             max: dayjs(old.max, { jalali: calendar === 'jalali' }).calendar(newCalendar).format(format)
+//         }));
+//     }}
+// />
